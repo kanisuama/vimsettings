@@ -303,10 +303,7 @@ set incsearch
 set wrapscan
 
 " 検索語をハイライト
-augroup highlight
-    autocmd!
-    autocmd VimEnter * set hlsearch
-augroup END
+set hlsearch
 
 " 直前の検索パターンと"hlsearch"をバッファローカルにする
 augroup localizedSearch

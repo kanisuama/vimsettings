@@ -22,6 +22,9 @@ set noundofile
 set encoding=utf-8
 scriptencoding utf-8
 
+" 日本語のヘルプファイルを読む
+set helplang=ja,en
+
 " gvimで終了時の状態を保存し, 次回起動時に状態を復元する
 if has('gui_running')
     augroup session
@@ -302,6 +305,15 @@ set wrapscan
 augroup highlight
     autocmd!
     autocmd VimEnter * set hlsearch
+augroup END
+
+" 直前の検索パターンと"hlsearch"をバッファローカルにする
+augroup localizedSearch
+    autocmd!
+    autocmd WinLeave * let b:vimrc_pattern  = @/
+                   \ | let b:vimrc_hlsearch = &hlsearch
+    autocmd WinEnter * let @/          = get(b:, 'vimrc_pattern',  @/)
+                   \ | let &l:hlsearch = get(b:, 'vimrc_hlsearch', &l:hlsearch)
 augroup END
 
 " ビジュアルモードで, *, #で選択文字列で検索できるようにする

@@ -5,6 +5,14 @@
 [[plugins]]
 repo = 'Shougo/dein.vim'
 
+[[plugins]]
+repo = 'vim-jp/vimdoc-ja'
+hook_add = '''
+    if &runtimepath !~# expand('/vimdoc-ja')
+        set runtimepath+=~/.vim/bundles/repos/github.com/vim-jp/vimdoc-ja
+    endif
+'''
+
 # [[plugins]]
 # repo = 'Shougo/vimproc.vim'
 # hook_post_update = '''

@@ -62,13 +62,13 @@ endfunction
 
 " プラグインが実際にインストールされるディレクトリ
 if has('win32') || has('win64')
-    let s:dein_dir = expand('$HOME\vimfiles\bundles')
+    let g:dein_dir = expand('$HOME\vimfiles\bundles')
 else
-    let s:dein_dir = expand('~/.vim/bundles')
+    let g:dein_dir = expand('~/.vim/bundles')
 endif
 
 " dein.vim本体
-let s:dein_repo_dir = s:dein_dir . expand('/repos/github.com/Shougo/dein.vim')
+let s:dein_repo_dir = g:dein_dir . expand('/repos/github.com/Shougo/dein.vim')
 
 " dein.vimがなければダウンロードする
 if &runtimepath !~# expand('/dein.vim')
@@ -79,13 +79,13 @@ if &runtimepath !~# expand('/dein.vim')
     execute 'set runtimepath^=' . s:dein_repo_dir
 endif
 
-if dein#load_state(s:dein_dir)
+if dein#load_state(g:dein_dir)
     " プラグインリストを入力したTOMLファイル
     let s:vimsettings = expand('~/vimsettings')
     let s:toml        = s:vimsettings . expand('/dein.toml')
     let s:lazy_toml   = s:vimsettings . expand('/dein_lazy.toml')
 
-    call dein#begin(s:dein_dir, [$MYVIMRC, s:toml])
+    call dein#begin(g:dein_dir, [$MYVIMRC, s:toml])
 
     " TOMLを読み込み，キャッシュしておく
     call dein#load_toml(s:toml,      {'lazy':0})
@@ -207,6 +207,7 @@ set relativenumber
  
 " カーソル行を表示
 set cursorline
+highlight CursorLine term=reverse cterm=none ctermbg=8
 
 " カーソル行の上下へのオフセットを設定する
 set scrolloff=4
@@ -223,7 +224,7 @@ set ambiwidth=double
 " endif
 
 " 挿入モード時、ステータスラインの色を変更
-let g:hi_insert = 'highlight statusLine guifg=darkblue guibg=red gui=none '
+let g:hi_insert = 'highlight statusLine guifg=blue guibg=red gui=none '
               \ . 'ctermfg=blue ctermbg=red cterm=none'
 
 if has('syntax')

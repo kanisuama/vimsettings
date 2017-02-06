@@ -306,13 +306,11 @@ set wrapscan
 set hlsearch
 
 " 直前の検索パターンと"hlsearch"をバッファローカルにする
-augroup localizedSearch
-    autocmd!
-    autocmd WinLeave * let b:vimrc_pattern  = @/
-                   \ | let b:vimrc_hlsearch = &hlsearch
-    autocmd WinEnter * let @/          = get(b:, 'vimrc_pattern',  @/)
-                   \ | let &l:hlsearch = get(b:, 'vimrc_hlsearch', &l:hlsearch)
-augroup END
+" augroup localizedSearch
+"     autocmd!
+"     autocmd WinLeave * let b:vimrc_pattern = @/
+"     autocmd WinEnter * let @/ = get(b:, 'vimrc_pattern', @/)
+" augroup END
 
 " ビジュアルモードで, *, #で選択文字列で検索できるようにする
 xnoremap * :<C-U>call <SID>vSearch()<CR>/<C-R>=@/<CR><CR>

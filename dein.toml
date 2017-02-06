@@ -38,19 +38,21 @@ repo = 'Shougo/unite.vim'
 hook_add = '''
     nnoremap [unite] <Nop>
     nmap <Space>u [unite]
-    nnoremap <silent> [unite]f :Unite file<CR>
+    nnoremap <silent> [unite]f :<C-U>Unite file<CR>
+    augroup unite
+        autocmd!
+        autocmd FileType unite nmap <buffer> <ESC><ESC> <plug>(unite_exit)
+        " Ctrl-<CR>にtabopenを割り当て
+        autocmd FileType unite nmap <silent> <buffer> <expr>
+            \  unite#do_action('tabopen')
+    augroup END
 '''
 
 [[plugins]]
 repo = 'Shougo/neomru.vim'
 depends = ['unite.vim']
 hook_add = '''
-    nnoremap [unite] <Nop>
-    nmap <Space>u [unite]
-    nnoremap <expr> <silent> [unite]m ':<C-U>Unite file_mru'
-                                  \ . (expand('%') == '' ? '' :
-                                  \   ' -default-action=tabopen')
-                                  \ . '<CR>'
+    nnoremap <silent> [unite]m :<C-U>Unite file_mru<CR>
 '''
 
 [[plugins]]

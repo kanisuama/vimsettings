@@ -215,6 +215,12 @@ set scrolloff=4
 " ハイライトする括弧に<>を追加
 set matchpairs& matchpairs+=<:>
 
+" 補完ポップアップの色設定
+highlight Pmenu    ctermbg=lightgray
+highlight Pmenu    ctermfg=black
+highlight PmenuSel ctermbg=3
+highlight PmenuSel ctermfg=black
+
 " Unicodeで行末が変になる問題を解決
 set ambiwidth=double
 
@@ -224,8 +230,8 @@ set ambiwidth=double
 " endif
 
 " 挿入モード時、ステータスラインの色を変更
-let g:hi_insert = 'highlight statusLine guifg=blue guibg=red gui=none '
-              \ . 'ctermfg=blue ctermbg=red cterm=none'
+let g:hi_insert = 'highlight statusLine ctermfg=white ctermbg=red cterm=none '
+              \ . 'guifg=white guibg=red gui=none '
 
 if has('syntax')
     augroup InsertHook
@@ -270,7 +276,7 @@ endfunction
 
 " デフォルトのZenkakuSpaceを定義
 function! s:zenkakuSpace()
-  highlight ZenkakuSpace cterm=underline ctermfg=red gui=underline guifg=red
+  highlight ZenkakuSpace cterm=none ctermbg=darkred gui=none guibg=darkred
 endfunction
 
 if has('syntax')
@@ -303,7 +309,10 @@ set incsearch
 set wrapscan
 
 " 検索語をハイライト
-set hlsearch
+augroup search
+    autocmd!
+    autocmd VimEnter * set hlsearch
+augroup END
 
 " 直前の検索パターンと"hlsearch"をバッファローカルにする
 " augroup localizedSearch

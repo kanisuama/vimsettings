@@ -42,10 +42,6 @@ hook_add = '''
     augroup unite
         autocmd!
         " Ctrl-<CR>にtabopenを割り当て
-        " linux
-        autocmd FileType unite nmap <silent> <buffer> <expr>
-            \  unite#do_action('tabopen')
-        " cygwin
         autocmd FileType unite nmap <silent> <buffer> <expr>
             \  unite#do_action('tabopen')
     augroup END

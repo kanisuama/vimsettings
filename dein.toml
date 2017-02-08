@@ -8,7 +8,7 @@ repo = 'Shougo/dein.vim'
 [[plugins]]
 repo = 'vim-jp/vimdoc-ja'
 hook_post_update = '''
-    helptags g:dein_dir . expand('/repos/github.com/vim-jp/vimdoc-ja/doc')
+    execute 'helptags g:dein_dir' . expand('/repos/github.com/vim-jp/vimdoc-ja/doc')
 '''
 hook_add = '''
     if &runtimepath !~# expand('/vimdoc-ja')

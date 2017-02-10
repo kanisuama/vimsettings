@@ -42,9 +42,8 @@ hook_add = '''
     nnoremap <silent> [unite]f :<C-U>Unite file<CR>
     augroup unite
         autocmd!
-        " Ctrl-<CR>にtabopenを割り当て
         autocmd FileType unite nmap <silent> <buffer> <expr>
-            \  unite#do_action('tabopen')
+            \ <S-Tab> unite#do_action('tabopen')
     augroup END
 '''
 

@@ -124,37 +124,6 @@ else
     augroup END
 endif
 
-" " dein.vimがなければダウンロードする
-" if &runtimepath !~# expand('/dein.vim')
-"     if !isdirectory(s:dein_repo_dir)
-"         execute '!git clone https://github.com/Shougo/dein.vim' s:dein_repo_dir
-"     endif
-"     " execute 'set runtimepath^=' . fnamemodify(s:dein_repo_dir, ':p')
-"     execute 'set runtimepath^=' . s:dein_repo_dir
-" endif
-" 
-" if dein#load_state(g:dein_dir)
-"     " プラグインリストを入力したTOMLファイル
-"     let g:vim_settings = expand('~/vimsettings')
-"     let s:toml        = g:vim_settings . expand('/dein.toml')
-"     let s:lazy_toml   = g:vim_settings . expand('/dein_lazy.toml')
-" 
-"     call dein#begin(g:dein_dir, [$MYVIMRC, s:toml])
-" 
-"     " TOMLを読み込み，キャッシュしておく
-"     call dein#load_toml(s:toml,      {'lazy':0})
-"     call dein#load_toml(s:lazy_toml, {'lazy':1})
-" 
-"     " 設定終了
-"     call dein#end()
-"     call dein#save_state()
-" endif
-" 
-" " もし，未インストールのものがあればインストール
-" if dein#check_install()
-"     call dein#install()
-" endif
-
 
 " ------------------------------------------------------------------------------
 " キーマッピング設定

@@ -8,7 +8,8 @@ repo = 'Shougo/dein.vim'
 [[plugins]]
 repo = 'vim-jp/vimdoc-ja'
 hook_post_update = '''
-    execute 'helptags g:dein_dir' . expand('/repos/github.com/vim-jp/vimdoc-ja/doc')
+    execute 'helptags g:dein_dir'
+        \ . expand('/repos/github.com/vim-jp/vimdoc-ja/doc')
 '''
 hook_add = '''
     if &runtimepath !~# expand('/vimdoc-ja')
@@ -137,6 +138,13 @@ hook_add = '''
 #     function! LightlineMode()
 #         return winwidth(0) > 60 ? lightline#mode() : ''
 #     endfunction
+# '''
+
+# [[plugins]]
+# repo = 'nathanaelkane/vim-indent-guides'
+# hook_add = '''
+#     let g:indent_guides_enable_on_vim_startup = 1
+#     " let g:indent_guides_guide_size = 1
 # '''
 
 [[plugins]]

@@ -27,30 +27,30 @@ set helplang=ja,en
 
 " gvimで終了時の状態を保存し, 次回起動時に状態を復元する
 if has('gui_running')
-    augroup session
+    augroup save_and_load_session
         autocmd!
 
         " セッションファイル
-        let s:sessionfile = expand('$HOME/.vimsession')
+        let s:session_file = expand('$HOME/.vimsession')
 
-        if filereadable(s:sessionfile)
+        if filereadable(s:session_file)
             " 引数なし起動の時、前回のセッションを復元
-            autocmd VimEnter * nested if @% == '' && s:getBufByte() == 0
-                                  \ |     execute 'source' s:sessionfile
+            autocmd VimEnter * nested if @% == '' && s:get_buf_byte() == 0
+                                  \ |     execute 'source' s:session_file
                                   \ | endif
         endif
 
         " Vim終了時に現在のセッションを保存する
-        let g:savesession = 1
-        autocmd VimLeave * if g:savesession == 0
-                       \ |     call delete(s:sessionfile)
+        let g:save_session = 1
+        autocmd VimLeave * if g:save_session == 0
+                       \ |     call delete(s:session_file)
                        \ | else
-                       \ |     execute 'mksession!' s:sessionfile
+                       \ |     execute 'mksession!' s:session_file
                        \ | endif
     augroup END
 endif
 
-function! s:getBufByte()
+function! s:get_buf_byte()
     let byte = line2byte(line('$') + 1)
     return byte == -1 ? 0 : byte - 1
 endfunction
@@ -70,36 +70,90 @@ endif
 " dein.vim本体
 let s:dein_repo_dir = g:dein_dir . expand('/repos/github.com/Shougo/dein.vim')
 
-" dein.vimがなければダウンロードする
-if &runtimepath !~# expand('/dein.vim')
-    if !isdirectory(s:dein_repo_dir)
-        execute '!git clone https://github.com/Shougo/dein.vim' s:dein_repo_dir
+" dein.vimのインストール
+function! s:dein_install()
+    execute '!git clone https://github.com/Shougo/dein.vim' s:dein_repo_dir
+    " インストールされたのを確認して，プラグインのロードと
+    " インストールコマンドの削除
+    if isdirectory(s:dein_repo_dir)
+        call s:dein_load()
+        delcommand DeinInstall
     endif
-    " execute 'set runtimepath^=' . fnamemodify(s:dein_repo_dir, ':p')
-    execute 'set runtimepath^=' . s:dein_repo_dir
+endfunction
+
+" プラグインのロード
+function! s:dein_load()
+    " runtimepathのチェック
+    if &runtimepath !~# expand('/dein.vim')
+        execute 'set runtimepath^=' . s:dein_repo_dir
+    endif
+
+    if dein#load_state(g:dein_dir)
+        " プラグインリストを入力したTOMLファイル
+        let g:vim_settings = expand('~/vimsettings')
+        let s:toml         = g:vim_settings . expand('/dein.toml')
+        let s:lazy_toml    = g:vim_settings . expand('/dein_lazy.toml')
+
+        call dein#begin(g:dein_dir, [$MYVIMRC, s:toml])
+
+        " TOMLを読み込み，キャッシュしておく
+        call dein#load_toml(s:toml,      {'lazy':0})
+        call dein#load_toml(s:lazy_toml, {'lazy':1})
+
+        " 設定終了
+        call dein#end()
+        call dein#save_state()
+    endif
+
+    " もし，未インストールのものがあればインストール
+    if dein#check_install()
+        call dein#install()
+    endif
+endfunction
+
+if isdirectory(s:dein_repo_dir)
+    " dein.vimがあれば，プラグインをロードする
+    call s:dein_load()
+else
+    " dein.vimがなければ，インストールコマンドを生成する
+    command! DeinInstall call s:dein_install()
+    augroup nodein_call
+        autocmd!
+        autocmd VimEnter * echo 'dein.vimがインストールされていません．'
+                            \ . ':DeinInstallでインストールして下さい．'
+    augroup END
 endif
 
-if dein#load_state(g:dein_dir)
-    " プラグインリストを入力したTOMLファイル
-    let s:vimsettings = expand('~/vimsettings')
-    let s:toml        = s:vimsettings . expand('/dein.toml')
-    let s:lazy_toml   = s:vimsettings . expand('/dein_lazy.toml')
-
-    call dein#begin(g:dein_dir, [$MYVIMRC, s:toml])
-
-    " TOMLを読み込み，キャッシュしておく
-    call dein#load_toml(s:toml,      {'lazy':0})
-    call dein#load_toml(s:lazy_toml, {'lazy':1})
-
-    " 設定終了
-    call dein#end()
-    call dein#save_state()
-endif
-
-" もし，未インストールのものがあればインストール
-if dein#check_install()
-    call dein#install()
-endif
+" " dein.vimがなければダウンロードする
+" if &runtimepath !~# expand('/dein.vim')
+"     if !isdirectory(s:dein_repo_dir)
+"         execute '!git clone https://github.com/Shougo/dein.vim' s:dein_repo_dir
+"     endif
+"     " execute 'set runtimepath^=' . fnamemodify(s:dein_repo_dir, ':p')
+"     execute 'set runtimepath^=' . s:dein_repo_dir
+" endif
+" 
+" if dein#load_state(g:dein_dir)
+"     " プラグインリストを入力したTOMLファイル
+"     let g:vim_settings = expand('~/vimsettings')
+"     let s:toml        = g:vim_settings . expand('/dein.toml')
+"     let s:lazy_toml   = g:vim_settings . expand('/dein_lazy.toml')
+" 
+"     call dein#begin(g:dein_dir, [$MYVIMRC, s:toml])
+" 
+"     " TOMLを読み込み，キャッシュしておく
+"     call dein#load_toml(s:toml,      {'lazy':0})
+"     call dein#load_toml(s:lazy_toml, {'lazy':1})
+" 
+"     " 設定終了
+"     call dein#end()
+"     call dein#save_state()
+" endif
+" 
+" " もし，未インストールのものがあればインストール
+" if dein#check_install()
+"     call dein#install()
+" endif
 
 
 " ------------------------------------------------------------------------------
@@ -118,32 +172,32 @@ noremap k gk
 noremap gk k
 
 " Home, Endの割り当て（状況に応じてg^/^/0, g$/$を使い分ける）
-" （ビジュアルモードでもgoToHead/Footが使えるようにしたい…）
-nnoremap <silent> <Space>h :<C-U>call <SID>goToHead()<CR>
+" （ビジュアルモードでもgo_to_head/footが使えるようにしたい…）
+nnoremap <silent> <Space>h :<C-U>call <SID>go_to_head()<CR>
 vnoremap <Space>h ^
 onoremap <Space>h ^
-nnoremap <silent> <Space>l :<C-U>call <SID>goToFoot()<CR>
+nnoremap <silent> <Space>l :<C-U>call <SID>go_to_foot()<CR>
 vnoremap <Space>l $
 onoremap <Space>l $
 
-function! s:goToHead()
-    let l:befCol=col('.')
+function! s:go_to_head()
+    let l:bef_col = col('.')
     normal g^
-    let l:aftCol=col('.')
-    if l:befCol == l:aftCol
+    let l:aft_col = col('.')
+    if l:bef_col == l:aft_col
         normal ^
-        let l:aftCol=col('.')
-        if l:befCol == l:aftCol
+        let l:aft_col = col('.')
+        if l:bef_col == l:aft_col
             normal 0
         endif
     endif
 endfunction
 
-function! s:goToFoot()
-    let l:befCol=col('.')
+function! s:go_to_foot()
+    let l:bef_col = col('.')
     normal g$
-    let l:aftCol=col('.')
-    if l:befCol == l:aftCol
+    let l:aft_col = col('.')
+    if l:bef_col == l:aft_col
         normal $
     endif
 endfunction
@@ -159,19 +213,19 @@ inoremap <C-K> <UP>
 inoremap <C-L> <RIGHT>
 
 " 括弧の補完
-inoremap { {}<LEFT>
+inoremap {     {}<LEFT>
 inoremap {<CR> {<CR>}<ESC>O
-inoremap {} {}
-inoremap ( ()<LEFT>
-inoremap () ()
-inoremap < <><LEFT>
-inoremap <> <>
-inoremap [ []<LEFT>
-inoremap [] []
-inoremap " ""<LEFT>
-inoremap "" ""
-inoremap ' ''<LEFT>
-inoremap '' ''
+inoremap {}    {}
+inoremap (     ()<LEFT>
+inoremap ()    ()
+inoremap <     <><LEFT>
+inoremap <>    <>
+inoremap [     []<LEFT>
+inoremap []    []
+inoremap "     ""<LEFT>
+inoremap ""    ""
+inoremap '     ''<LEFT>
+inoremap ''    ''
 
 " vim scriptの編集中に""，tomlファイルの編集中に''の補完を無効にする
 augroup vimscript
@@ -224,35 +278,30 @@ highlight PmenuSel ctermfg=black
 " Unicodeで行末が変になる問題を解決
 set ambiwidth=double
 
-" 長い行をハイライト
-" if exists ('&colorcolums')
-"     set colorcolumn=+1
-" endif
-
 " 挿入モード時、ステータスラインの色を変更
-let g:hi_insert = 'highlight statusLine ctermfg=white ctermbg=red cterm=none '
+let g:hl_insert = 'highlight status_line ctermfg=white ctermbg=red cterm=none '
               \ . 'guifg=white guibg=red gui=none '
 
 if has('syntax')
-    augroup InsertHook
-      autocmd!
-      autocmd InsertEnter * call s:statusLine('Enter')
-      autocmd InsertLeave * call s:statusLine('Leave')
+    augroup insert_hook
+        autocmd!
+        autocmd InsertEnter * call s:status_line('Enter')
+        autocmd InsertLeave * call s:status_line('Leave')
     augroup END
 endif
 
-let s:slhlcmd = ''
-function! s:statusLine(mode)
+let s:sl_hl_cmd = ''
+function! s:status_line(mode)
     if a:mode == 'Enter'
-      silent! let s:slhlcmd = 'highlight ' . s:getHighlight('statusLine')
-      silent exec g:hi_insert
+        silent! let s:sl_hl_cmd = 'highlight ' . s:get_hightlight('StatusLine')
+        silent exec g:hl_insert
     else
-      highlight clear statusLine
-      silent exec s:slhlcmd
+        highlight clear StatusLine
+        silent exec s:sl_hl_cmd
     endif
 endfunction
 
-function! s:getHighlight(hi)
+function! s:get_hightlight(hi)
     redir => hl
     exec 'highlight '.a:hi
     redir END
@@ -275,20 +324,20 @@ endfunction
 " scriptencoding cp932
 
 " デフォルトのZenkakuSpaceを定義
-function! s:zenkakuSpace()
-  highlight ZenkakuSpace cterm=none ctermbg=darkred gui=none guibg=darkred
+function! s:set_zs_hl()
+    highlight ZenkakuSpace cterm=none ctermbg=darkred gui=none guibg=darkred
 endfunction
 
 if has('syntax')
-  augroup ZenkakuSpace
-    autocmd!
-    " ZenkakuSpaceをカラーファイルで設定するなら次の行は削除
-    autocmd ColorScheme       * call s:zenkakuSpace()
-    " 全角スペースのハイライト指定
-    autocmd VimEnter,WinEnter * match ZenkakuSpace /　/
-    autocmd VimEnter,WinEnter * match ZenkakuSpace '\%u3000'
-  augroup END
-  call s:zenkakuSpace()
+    augroup zenkaku_space_group
+        autocmd!
+        " ZenkakuSpaceをカラーファイルで設定するなら次の行は削除
+        autocmd ColorScheme       * call s:set_zs_hl()
+        " 全角スペースのハイライト指定
+        autocmd VimEnter,WinEnter * match ZenkakuSpace /　/
+        autocmd VimEnter,WinEnter * match ZenkakuSpace '\%u3000'
+    augroup END
+    call s:set_zs_hl()
 endif
 
 
@@ -309,23 +358,23 @@ set incsearch
 set wrapscan
 
 " 検索語をハイライト
-augroup search
+augroup hl_search
     autocmd!
     autocmd VimEnter * set hlsearch
 augroup END
 
 " 直前の検索パターンと"hlsearch"をバッファローカルにする
-" augroup localizedSearch
+" augroup localized_search
 "     autocmd!
 "     autocmd WinLeave * let b:vimrc_pattern = @/
 "     autocmd WinEnter * let @/ = get(b:, 'vimrc_pattern', @/)
 " augroup END
 
 " ビジュアルモードで, *, #で選択文字列で検索できるようにする
-xnoremap * :<C-U>call <SID>vSearch()<CR>/<C-R>=@/<CR><CR>
-xnoremap # :<C-U>call <SID>vSearch()<CR>#<C-R>=@/<CR><CR>
+xnoremap * :<C-U>call <SID>visual_star_search()<CR>/<C-R>=@/<CR><CR>
+xnoremap # :<C-U>call <SID>visual_star_search()<CR>#<C-R>=@/<CR><CR>
 
-function! s:vSearch()
+function! s:visual_star_search()
     let l:temp = @s
     norm! gv"sy
     let @/ = '\V' . substitute(substitute(escape(@s, '/\'), '\n$', '', ''),

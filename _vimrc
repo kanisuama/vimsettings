@@ -196,13 +196,6 @@ inoremap ""    ""
 inoremap '     ''<LEFT>
 inoremap ''    ''
 
-" vim scriptの編集中に""，tomlファイルの編集中に''の補完を無効にする
-augroup vimscript
-    autocmd!
-    autocmd BufRead,BufNewFile [._]g\=vimrc,*.toml inoremap <buffer> " "
-    autocmd BufRead,BufNewFile *.toml              inoremap <buffer> ' '
-augroup END
-
 " Deleteキーが効かなくなる問題を解決
 if has('unix') && !has('gui_running')
     noremap!  
@@ -248,8 +241,8 @@ highlight PmenuSel ctermfg=black
 set ambiwidth=double
 
 " 挿入モード時、ステータスラインの色を変更
-let g:hl_insert = 'highlight status_line ctermfg=white ctermbg=red cterm=none '
-              \ . 'guifg=white guibg=red gui=none '
+let g:hl_insert = 'highlight StatusLine ctermfg=white ctermbg=red cterm=none '
+                                      \ . 'guifg=white   guibg=red   gui=none'
 
 if has('syntax')
     augroup insert_hook
@@ -272,7 +265,7 @@ endfunction
 
 function! s:get_hightlight(hi)
     redir => hl
-    exec 'highlight '.a:hi
+    exec 'highlight ' . a:hi
     redir END
     let hl = substitute(hl, '[\r\n]', '', 'g')
     let hl = substitute(hl, 'xxx', '', '')
@@ -383,9 +376,18 @@ set whichwrap=h,l,<,>,[,]
 set spelllang& spelllang+=cjk
 
 " コメント補完の無効化
-augroup auto_comment_off
+set formatoptions-=r
+set formatoptions-=o
+
+
+" ------------------------------------------------------------------------------
+" 言語別個別設定
+" ------------------------------------------------------------------------------
+
+" vim scriptの編集中に""，tomlファイルの編集中に''の補完を無効にする
+augroup vimscript
     autocmd!
-    autocmd BufEnter * setlocal formatoptions-=r
-    autocmd BufEnter * setlocal formatoptions-=o
+    autocmd BufRead,BufNewFile [._]g\=vimrc,*.toml inoremap <buffer> " "
+    autocmd BufRead,BufNewFile *.toml              inoremap <buffer> ' '
 augroup END
 

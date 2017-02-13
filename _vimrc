@@ -151,23 +151,23 @@ onoremap          <Space>l $
 
 function! s:go_to_head()
     let l:bef_col = col('.')
-    normal g^
+    normal! g^
     let l:aft_col = col('.')
     if l:bef_col == l:aft_col
-        normal ^
+        normal! ^
         let l:aft_col = col('.')
         if l:bef_col == l:aft_col
-            normal 0
+            normal! 0
         endif
     endif
 endfunction
 
 function! s:go_to_foot()
     let l:bef_col = col('.')
-    normal g$
+    normal! g$
     let l:aft_col = col('.')
     if l:bef_col == l:aft_col
-        normal $
+        normal! $
     endif
 endfunction
 
@@ -370,12 +370,26 @@ set whichwrap=h,l,<,>,[,]
 set spelllang& spelllang+=cjk
 
 " コメント補完の無効化
-set formatoptions-=r
-set formatoptions-=o
+augroup auto_comment_off
+    autocmd!
+    autocmd BufEnter * setlocal formatoptions-=r
+    autocmd BufEnter * setlocal formatoptions-=o
+augroup END
+
+" <C-G>でカレントファイルの更新日時を表示
+nnoremap <C-G> :<C-U>call <SID>add_timestamp()<CR>
+
+function! s:add_timestamp()
+    let l:file_info = substitute(execute('normal! '), '\n', '', 'g')
+    let l:timestamp = strftime(" %y/%m/%d %H:%M:%S", getftime(expand('%')))
+    let l:file_info = join(insert(split(l:file_info, '"\zs'),
+                                \ l:timestamp, 2), '')
+    echo l:file_info
+endfunction
 
 
 " ------------------------------------------------------------------------------
-" 言語別個別設定
+" 言語別設定
 " ------------------------------------------------------------------------------
 
 " vim scriptの編集中に""，tomlファイルの編集中に''の補完を無効にする

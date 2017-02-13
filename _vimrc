@@ -143,11 +143,11 @@ noremap gk k
 " Home, Endの割り当て（状況に応じてg^/^/0, g$/$を使い分ける）
 " （ビジュアルモードでもgo_to_head/footが使えるようにしたい…）
 nnoremap <silent> <Space>h :<C-U>call <SID>go_to_head()<CR>
-vnoremap <Space>h ^
-onoremap <Space>h ^
+vnoremap          <Space>h ^
+onoremap          <Space>h ^
 nnoremap <silent> <Space>l :<C-U>call <SID>go_to_foot()<CR>
-vnoremap <Space>l $
-onoremap <Space>l $
+vnoremap          <Space>l $
+onoremap          <Space>l $
 
 function! s:go_to_head()
     let l:bef_col = col('.')
@@ -271,12 +271,6 @@ function! s:get_hightlight(hi)
     let hl = substitute(hl, 'xxx', '', '')
     return hl
 endfunction
-
-" ESC後にすぐ反映されない対策（方向キーの動作がおかしくなる？）
-"if has('unix') && !has('gui_running')
-"    inoremap <silent> <ESC> <ESC>
-"    inoremap <silent> <C-[> <ESC>
-"endif
 
 
 " 全角スペースを表示

@@ -1,10 +1,8 @@
 #! /bin/bash
 
-# thisFile=gitpush.sh
-
 echo "git add *"
 git add *
-# git reset HEAD $thisFile
+# git reset HEAD $0
 
 echo -n "git commit -m "
 read message

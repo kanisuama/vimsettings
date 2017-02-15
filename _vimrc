@@ -221,7 +221,10 @@ syntax enable
 " ステータスラインを表示
 set laststatus=2
 
-" 相対ルーラの表示
+" ルーラの表示
+set ruler
+
+" 相対行番号の表示
 set relativenumber
  
 " カーソル行を表示

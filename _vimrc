@@ -92,18 +92,21 @@ function! s:dein_load()
         " プラグインリストを入力したTOMLファイル
         let g:vim_settings = expand('~/vimsettings')
         let s:toml         = g:vim_settings . expand('/dein.toml')
-        let s:lazy_toml    = g:vim_settings . expand('/dein_lazy.toml')
+        " let s:lazy_toml    = g:vim_settings . expand('/dein_lazy.toml')
 
         call dein#begin(g:dein_dir, [$MYVIMRC, s:toml])
 
         " TOMLを読み込み，キャッシュしておく
-        call dein#load_toml(s:toml,      {'lazy':0})
-        call dein#load_toml(s:lazy_toml, {'lazy':1})
+        call dein#load_toml(s:toml)
+        " call dein#load_toml(s:toml,      {'lazy':0})
+        " call dein#load_toml(s:lazy_toml, {'lazy':1})
 
         " 設定終了
         call dein#end()
         call dein#save_state()
     endif
+
+    call dein#call_hook('source')
 
     " もし，未インストールのものがあればインストール
     if dein#check_install()
@@ -380,11 +383,15 @@ augroup END
 nnoremap <C-G> :<C-U>call <SID>add_timestamp()<CR>
 
 function! s:add_timestamp()
-    let l:file_info = substitute(execute('normal! '), '\n', '', 'g')
-    let l:timestamp = strftime(" %y/%m/%d %H:%M:%S", getftime(expand('%')))
-    let l:file_info = join(insert(split(l:file_info, '"\zs'),
-                                \ l:timestamp, 2), '')
-    echo l:file_info
+    if expand('%') == ''
+        normal! 
+    else
+        let l:file_info = substitute(execute('normal! '), '\n', '', 'g')
+        let l:timestamp = strftime(" %y/%m/%d %H:%M:%S", getftime(expand('%')))
+        let l:file_info = join(insert(split(l:file_info, '"\zs'),
+                                    \ l:timestamp, 2), '')
+        echo l:file_info
+    endif
 endfunction
 
 

@@ -62,7 +62,11 @@ endfunction
 
 " プラグインが実際にインストールされるディレクトリ
 if has('win32') || has('win64')
-    let g:dein_dir = expand('$HOME\vimfiles\bundles')
+    if has('nvim')
+        let g:dein_dir = expand('$HOME\AppData\Local\nvim\bundles')
+    else
+        let g:dein_dir = expand('$HOME\vimfiles\bundles')
+    endif
 else
     let g:dein_dir = expand('~/.vim/bundles')
 endif

@@ -233,7 +233,6 @@ set relativenumber
  
 " カーソル行を表示
 set cursorline
-highlight CursorLine term=reverse cterm=none ctermbg=8
 
 " カーソル行の上下へのオフセットを設定する
 set scrolloff=4
@@ -241,14 +240,24 @@ set scrolloff=4
 " ハイライトする括弧に<>を追加
 set matchpairs& matchpairs+=<:>
 
-" 補完ポップアップの色設定
-highlight Pmenu    ctermbg=lightgray
-highlight Pmenu    ctermfg=black
-highlight PmenuSel ctermbg=3
-highlight PmenuSel ctermfg=black
-
 " Unicodeで行末が変になる問題を解決
 set ambiwidth=double
+
+function! s:define_hilights()
+    " カーソル行の色設定
+    highlight CursorLine term=reverse cterm=none ctermbg=8
+
+    " 補完ポップアップの色設定
+    highlight Pmenu    ctermbg=lightgray
+    highlight Pmenu    ctermfg=black
+    highlight PmenuSel ctermbg=3
+    highlight PmenuSel ctermfg=black
+endfunction
+
+augroup sethighlights
+    autocmd!
+    autocmd ColorScheme * :call <SID>define_hilights()
+augroup END
 
 " 挿入モード時、ステータスラインの色を変更
 let g:hl_insert = 'highlight StatusLine ctermfg=white ctermbg=red cterm=none '
@@ -265,7 +274,7 @@ endif
 let s:sl_hl_cmd = ''
 function! s:status_line(mode)
     if a:mode == 'Enter'
-        silent! let s:sl_hl_cmd = 'highlight ' . s:get_hightlight('StatusLine')
+        silent! let s:sl_hl_cmd = 'highlight ' . s:get_highlight('StatusLine')
         silent exec g:hl_insert
     else
         highlight clear StatusLine
@@ -273,7 +282,7 @@ function! s:status_line(mode)
     endif
 endfunction
 
-function! s:get_hightlight(hi)
+function! s:get_highlight(hi)
     redir => hl
     exec 'highlight ' . a:hi
     redir END

@@ -219,9 +219,6 @@ colorscheme torte
 " 編集中のファイル名を表示する
 set title
 
-" 構文ハイライトを有効にする
-syntax enable
-
 " ステータスラインを表示
 set laststatus=2
 
@@ -314,6 +311,10 @@ if has('syntax')
     augroup END
     call s:set_zs_hl()
 endif
+
+
+" 構文ハイライトを有効にする
+syntax enable
 
 
 " ------------------------------------------------------------------------------

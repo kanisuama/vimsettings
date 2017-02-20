@@ -37,6 +37,7 @@ hook_add = '''
 
 [[plugins]]
 repo = 'Shougo/unite.vim'
+depends = 'neomru.vim'
 # on_cmdを設定すると，一部環境で2回目以降uniteが呼べなくなる．
 # on_cmd = ['Unite', 'UniteBookmarkAdd', 'UniteClose', 'UniteDo', 'UniteFirst', 
 #           'UniteLast', 'UniteNext', 'UnitePrevious', 'UniteResume',
@@ -54,6 +55,7 @@ hook_add = '''
 [[plugins]]
 repo = 'Shougo/denite.nvim'
 if = ''' has('python3') && (has('nvim') || v:version >= 800)'''
+depends = 'neomru.vim'
 on_cmd = ['Denite', 'DeniteBufferDir', 'DeniteCursorWord', 'DeniteProjectDir']
 hook_add = '''
     nnoremap [denite] <Nop>

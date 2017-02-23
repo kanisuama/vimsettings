@@ -96,14 +96,17 @@ function! s:dein_load()
         " プラグインリストを入力したTOMLファイル
         let g:vim_settings = expand('~/vimsettings')
         let s:toml         = g:vim_settings . expand('/dein.toml')
-        " let s:lazy_toml    = g:vim_settings . expand('/dein_lazy.toml')
+        let s:local_toml   = expand('~/.dein_local.toml')
 
-        call dein#begin(g:dein_dir, [$MYVIMRC, s:toml])
-
-        " TOMLを読み込み，キャッシュしておく
-        call dein#load_toml(s:toml)
-        " call dein#load_toml(s:toml,      {'lazy':0})
-        " call dein#load_toml(s:lazy_toml, {'lazy':1})
+        if filereadable(s:local_toml)
+            call dein#begin(g:dein_dir, [$MYVIMRC, s:toml, s:local_toml])
+            " TOMLを読み込み，キャッシュしておく
+            call dein#load_toml(s:toml)
+            call dein#load_toml(s:local_toml)
+        else
+            call dein#begin(g:dein_dir, [$MYVIMRC, s:toml])
+            call dein#load_toml(s:toml)
+        endif
 
         " 設定終了
         call dein#end()
@@ -146,6 +149,10 @@ noremap j gj
 noremap gj j
 noremap k gk
 noremap gk k
+
+" ;と:を入れ替える
+noremap ; :
+noremap : ;
 
 " Home, Endの割り当て（状況に応じてg^/^/0, g$/$を使い分ける）
 " （ビジュアルモードでもgo_to_head/footが使えるようにしたい…）
@@ -422,4 +429,14 @@ augroup vimscript
     autocmd BufRead,BufNewFile [._]g\=vimrc,*.toml inoremap <buffer> " "
     autocmd BufRead,BufNewFile *.toml              inoremap <buffer> ' '
 augroup END
+
+
+" ------------------------------------------------------------------------------
+" ~/.vimrc_local
+" ------------------------------------------------------------------------------
+
+let s:vimrc_local = expand('~/.vimrc_local')
+if filereadable(s:vimrc_local)
+    execute 'source' s:vimrc_local
+endif
 

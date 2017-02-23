@@ -42,7 +42,7 @@ if has('gui_running')
 
         " Vim終了時に現在のセッションを保存する
         let g:save_session = 1
-        autocmd VimLeave * if g:save_session == 0
+        autocmd VimLeave * if g:save_session == 1
                        \ |     call delete(s:session_file)
                        \ | else
                        \ |     execute 'mksession!' s:session_file
@@ -74,6 +74,7 @@ endif
 " dein.vim本体
 let s:dein_repo_dir = g:dein_dir . expand('/repos/github.com/Shougo/dein.vim')
 
+
 " dein.vimのインストール
 function! s:dein_install()
     execute '!git clone https://github.com/Shougo/dein.vim' s:dein_repo_dir
@@ -84,6 +85,7 @@ function! s:dein_install()
         delcommand DeinInstall
     endif
 endfunction
+
 
 " プラグインのロード
 function! s:dein_load()
@@ -98,14 +100,14 @@ function! s:dein_load()
         let s:toml         = g:vim_settings . expand('/dein.toml')
         let s:local_toml   = expand('~/.dein_local.toml')
 
+        call dein#begin(g:dein_dir, $MYVIMRC)
+
+        " TOMLを読み込み，キャッシュしておく
+        call dein#load_toml(s:toml)
+
+        " ローカルなTOMLがあれば追加で読み込み，キャッシュする
         if filereadable(s:local_toml)
-            call dein#begin(g:dein_dir, [$MYVIMRC, s:toml, s:local_toml])
-            " TOMLを読み込み，キャッシュしておく
-            call dein#load_toml(s:toml)
             call dein#load_toml(s:local_toml)
-        else
-            call dein#begin(g:dein_dir, [$MYVIMRC, s:toml])
-            call dein#load_toml(s:toml)
         endif
 
         " 設定終了
@@ -120,6 +122,7 @@ function! s:dein_load()
         call dein#install()
     endif
 endfunction
+
 
 if isdirectory(s:dein_repo_dir)
     " dein.vimがあれば，プラグインをロードする
@@ -153,6 +156,7 @@ noremap gk k
 " ;と:を入れ替える
 noremap ; :
 noremap : ;
+nnoremap q; q:
 
 " Home, Endの割り当て（状況に応じてg^/^/0, g$/$を使い分ける）
 " （ビジュアルモードでもgo_to_head/footが使えるようにしたい…）
@@ -435,6 +439,7 @@ augroup END
 " ~/.vimrc_local
 " ------------------------------------------------------------------------------
 
+" ローカルなvimrcがあれば，読み込む
 let s:vimrc_local = expand('~/.vimrc_local')
 if filereadable(s:vimrc_local)
     execute 'source' s:vimrc_local

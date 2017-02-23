@@ -41,8 +41,8 @@ if has('gui_running')
         endif
 
         " Vim終了時に現在のセッションを保存する
-        let g:save_session = 1
-        autocmd VimLeave * if g:save_session == 1
+        let g:save_session = 0
+        autocmd VimLeave * if g:save_session == 0
                        \ |     call delete(s:session_file)
                        \ | else
                        \ |     execute 'mksession!' s:session_file

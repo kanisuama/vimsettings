@@ -180,15 +180,21 @@ inoremap ""    ""
 inoremap '     ''<LEFT>
 inoremap ''    ''
 
-" インサートモードでのhjlkによる移動の割り当て
+" インサートモードでの<C-H>, <C-J>, <C-K>, <C-L>による移動の割り当て
 inoremap <C-H> <LEFT>
 inoremap <C-J> <DOWN>
 inoremap <C-K> <UP>
 inoremap <C-L> <RIGHT>
 
-" c_Ctrl-P, c_Ctrl-Nを<UP>, <DOWN>に割り当て
+" コマンドラインモードでの<C-P>, <C-N>による履歴補完の割り当て
 cnoremap <C-P> <UP>
 cnoremap <C-N> <DOWN>
+
+" コマンドラインモードでの<C-H>, <C-J>, <C-K>, <C-L>による移動の割り当て
+cnoremap <C-J> <LEFT>
+cnoremap <C-K> <RIGHT>
+cnoremap <C-H> <S-LEFT>
+cnoremap <C-L> <S-RIGHT>
 
 " Home, Endの割り当て（状況に応じてg^/^/0, g$/$を使い分ける）
 " （ビジュアルモードでもgo_to_head/footが使えるようにしたい…）

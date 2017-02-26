@@ -15,7 +15,7 @@ set nobackup
 " スワップファイルを作らない
 set noswapfile
 
-" .un~ファイルを作らない
+" アンドゥファイルを作らない
 set noundofile
 
 " 文字コードの設定
@@ -100,7 +100,7 @@ function! s:dein_load()
         let s:toml         = g:vim_settings . expand('/dein.toml')
         let s:local_toml   = expand('~/.dein_local.toml')
 
-        call dein#begin(g:dein_dir, $MYVIMRC)
+        call dein#begin(g:dein_dir, expand('<sfile>'))
 
         " TOMLを読み込み，キャッシュしておく
         call dein#load_toml(s:toml)
@@ -142,9 +142,8 @@ endif
 " キーマッピング設定
 " ------------------------------------------------------------------------------
 
-" <BS>, <CR>, <Space>による移動の無効化
+" <BS>, <Space>による移動の無効化
 noremap <BS>    <Nop>
-noremap <CR>    <Nop>
 noremap <Space> <Nop>
 
 " jとgj, kとgkを入れ替える
@@ -157,6 +156,39 @@ noremap gk k
 noremap ; :
 noremap : ;
 nnoremap q; q:
+
+" Deleteキーが効かなくなる問題を解決
+if has('unix') && !has('gui_running')
+    noremap!  
+endif
+
+" <ESC><ESC>でハイライト解除
+nnoremap <ESC><ESC> :<C-U>nohlsearch<CR>
+
+" 括弧の補完
+inoremap {     {}<LEFT>
+inoremap {<CR> {<CR>}<ESC>O
+inoremap {}    {}
+inoremap (     ()<LEFT>
+inoremap ()    ()
+inoremap <     <><LEFT>
+inoremap <>    <>
+inoremap [     []<LEFT>
+inoremap []    []
+inoremap "     ""<LEFT>
+inoremap ""    ""
+inoremap '     ''<LEFT>
+inoremap ''    ''
+
+" インサートモードでのhjlkによる移動の割り当て
+inoremap <C-H> <LEFT>
+inoremap <C-J> <DOWN>
+inoremap <C-K> <UP>
+inoremap <C-L> <RIGHT>
+
+" c_Ctrl-P, c_Ctrl-Nを<UP>, <DOWN>に割り当て
+cnoremap <C-P> <UP>
+cnoremap <C-N> <DOWN>
 
 " Home, Endの割り当て（状況に応じてg^/^/0, g$/$を使い分ける）
 " （ビジュアルモードでもgo_to_head/footが使えるようにしたい…）
@@ -190,36 +222,6 @@ function! s:go_to_foot()
 endfunction
 
 
-" <ESC><ESC>でハイライト解除
-nnoremap <ESC><ESC> :<C-U>nohlsearch<CR>
-
-" インサートモードでのhjlkによる移動の割り当て
-inoremap <C-H> <LEFT>
-inoremap <C-J> <DOWN>
-inoremap <C-K> <UP>
-inoremap <C-L> <RIGHT>
-
-" 括弧の補完
-inoremap {     {}<LEFT>
-inoremap {<CR> {<CR>}<ESC>O
-inoremap {}    {}
-inoremap (     ()<LEFT>
-inoremap ()    ()
-inoremap <     <><LEFT>
-inoremap <>    <>
-inoremap [     []<LEFT>
-inoremap []    []
-inoremap "     ""<LEFT>
-inoremap ""    ""
-inoremap '     ''<LEFT>
-inoremap ''    ''
-
-" Deleteキーが効かなくなる問題を解決
-if has('unix') && !has('gui_running')
-    noremap!  
-endif
-
-
 " ------------------------------------------------------------------------------
 " 表示系設定
 " ------------------------------------------------------------------------------
@@ -238,6 +240,7 @@ set ruler
 
 " 相対行番号の表示
 set relativenumber
+set numberwidth=3
  
 " カーソル行を表示
 set cursorline
@@ -397,6 +400,10 @@ set tabstop=4
 " 行を越えて左右移動
 set whichwrap=h,l,<,>,[,]
 
+" コマンドラインの補完機能の設定
+set wildmenu
+set wildmode=longest:full,full
+
 " スペルチェック時に日本語等を無視
 set spelllang& spelllang+=cjk
 
@@ -430,8 +437,9 @@ endfunction
 " vim scriptの編集中に""，tomlファイルの編集中に''の補完を無効にする
 augroup vimscript
     autocmd!
-    autocmd BufRead,BufNewFile [._]g\=vimrc,*.toml inoremap <buffer> " "
-    autocmd BufRead,BufNewFile *.toml              inoremap <buffer> ' '
+    autocmd BufRead,BufNewFile [._]g\=vimrc,.vimrc_local,*.vim,*.toml
+                                    \ inoremap <buffer> " "
+    autocmd BufRead,BufNewFile *.toml inoremap <buffer> ' '
 augroup END
 
 

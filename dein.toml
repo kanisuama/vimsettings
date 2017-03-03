@@ -38,11 +38,6 @@ hook_add = '''
 [[plugins]]
 repo = 'Shougo/unite.vim'
 depends = 'neomru.vim'
-# on_cmdを設定すると，一部環境で2回目以降uniteが呼べなくなる．
-# on_cmd = ['Unite', 'UniteBookmarkAdd', 'UniteClose', 'UniteDo', 'UniteFirst', 
-#           'UniteLast', 'UniteNext', 'UnitePrevious', 'UniteResume',
-#           'UniteWithBufferDir', 'UniteWithCurrentDir', 'UniteWithCursorWord',
-#           'UniteWithInput', 'UniteWithInputDirectory', 'UniteWithProjectDir']
 hook_add = '''
     if !(has('python3') && (has('nvim') || v:version >= 800))
         nnoremap [unite] <Nop>
@@ -65,6 +60,7 @@ hook_add = '''
 '''
 hook_post_source = '''
     call denite#custom#source('file_rec', 'matchers', ['matcher_regexp'])
+    call denite#custom#source('file_mru', 'matchers', ['matcher_regexp'])
 '''
 
 [[plugins]]
@@ -87,76 +83,11 @@ hook_source = '''
     call singleton#enable()
 '''
 
-# [[plugins]]
-# repo = 'itchyny/lightline.vim'
-# hook_add = '''
-#     let g:lightline = {
-#     \     'colorscheme'      : 'wombat',
-#     \     'mode_map'         : {'c' : 'normal'},
-#     \     'active'           : {
-#     \         'left' : [ [ 'mode', 'paste' ], [ 'fugitive', 'filename' ] ]
-#     \     },
-#     \     'component_function' : {
-#     \         'modified'     : 'LightlineModified',
-#     \         'readonly'     : 'LightlineReadonly',
-#     \         'fugitive'     : 'LightlineFugitive',
-#     \         'filename'     : 'LightlineFilename',
-#     \         'fileformat'   : 'LightlineFileformat',
-#     \         'filetype'     : 'lightlinefiletype',
-#     \         'fileencoding' : 'lightlinefileencoding',
-#     \         'mode'         : 'LightlineMode'
-#     \     }
-#     \ }
-# 
-#     function! LightlineModified()
-#         return &ft =~ 'help\|vimfiler\|gundo' ? '' :
-#              \ &modified                      ? '+' :
-#              \ &modifiable                    ? '' :
-#              \                                  '-'
-#     endfunction
-# 
-#     function! LightlineReadonly()
-#         return &ft !~? 'help\|vimfiler\|gundo' && &readonly ? 'x' : ''
-#     endfunction
-# 
-#     function! LightlineFilename()
-#         return ('' != LightlineReadonly() ? LightlineReadonly() . ' ' : '')
-#            \ . (&ft == 'vimfiler'    ? vimfiler#get_status_string() :
-#               \ &ft == 'unite'       ? unite#get_status_string() :
-#               \ &ft == 'vimshell'    ? vimshell#get_status_string() :
-#               \ ''  != expand('%:t') ? expand('%:t') :
-#               \                        '[No Name]'
-#            \   )
-#            \ . ('' != LightlineModified() ? ' ' . LightlineModified() : '')
-#         endfunction
-# 
-#     function! LightlineFugitive()
-#         if &ft !~? 'vimfiler\|gundo' && exists('*fugitive#head')
-#             return fugitive#head()
-#         else
-#             return ''
-#         endif
-#         endfunction
-# 
-#     function! LightlineFileformat()
-#         return winwidth(0) > 70 ? &fileformat : ''
-#     endfunction
-# 
-#     function! LightlineFiletype()
-#         return winwidth(0) > 70 ? (&filetype !=# '' ? &filetype : 'no ft') : ''
-#     endfunction
-# 
-#     function! LightlineFileencoding()
-#         return winwidth(0) > 70 ? (&fenc !=# '' ? &fenc : &enc) : ''
-#     endfunction
-# 
-#     function! LightlineMode()
-#         return winwidth(0) > 60 ? lightline#mode() : ''
-#     endfunction
-# '''
-
 [[plugins]]
 repo = 'Yggdroot/indentLine'
+hook_source = '''
+    let g:indentLine_fileTypeExclude = ['help']
+'''
 
 [[plugins]]
 repo = 'haya14busa/incsearch.vim'
@@ -220,10 +151,10 @@ hook_add = '''
 # repo    = 'osyo-manga/vim-watchdogs'
 # depends = ['vimproc.vim', 'vim-quickrun', 'shabadou', 'vim-javaclasspath']
 # hook_add = '''
-#     " 書き込み後にシンタックスチェックを行う
+#     " Check syntax after save the file.
 #     " let g:watchdogs_check_BufWeitePost_enable = 1
 # 
-#     " 一定時間キー入力がなかった場合にシンタックスチェックを行う
+#     " Check syntax when no key has pressed long time.
 #     let g:watchdogs_check_CursorHold_enable = 1
 # '''
 
@@ -279,8 +210,6 @@ hook_add = '''
 # repo = 'altercation/vim-colors-solarized'
 # hook_add = '''
 #     set background=dark
-#     " colorscheme設定はsource後に行う必要があるのでVimEnterで行う
-#     " ただし，colorschemeイベントの発生が抑制されないようにnestedを付ける
 #     augroup VimEnter * nested colorscheme solarized
 # '''
 

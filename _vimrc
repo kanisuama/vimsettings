@@ -3,44 +3,191 @@
 " ------------------------------------------------------------------------------
 
 " ------------------------------------------------------------------------------
-" 基本設定
+" Pre-settings
 " ------------------------------------------------------------------------------
 
-" 内容が変更されたら自動的に再読込み
+" Check encode automatically.
+if &encoding !=# 'utf-8'
+    set encoding=japan
+    set fileencoding=japan
+endif
+
+if has('iconv')
+    let s:enc_euc = 'euc-jp'
+    let s:enc_jis = 'iso-2022-jp'
+
+    " Check if iconv corrsponds to eucJP-ms.
+    if iconv("\x87\x64\x87\x6a", 'cp932', 'eucjp-ms') ==# "\xad\xc5\xad\xcb"
+        let s:enc_euc = 'eucjp-ms'
+        let s:enc_jis = 'iso-2022-jp-3'
+    " Check if iconv corrsponds to JISX0213.
+    elseif iconv("\x87\x64\x87\x6a", 'cp932', 'euc-jisx0213') ==# "\xad\xc5\xad\xcb"
+        let s:enc_euc = 'euc-jisx0213'
+        let s:enc_jis = 'iso-2022-jp-3'
+    endif
+
+    " Setting of fileencodings.
+    if &encoding ==# 'utf-8'
+        let s:fileencodings_default = &fileencodings
+        let &fileencodings = s:enc_jis .','. s:enc_euc .',cp932'
+        let &fileencodings = &fileencodings .','. s:fileencodings_default
+        unlet s:fileencodings_default
+    else
+        let &fileencodings = &fileencodings .','. s:enc_jis
+        set fileencodings+=utf-8,ucs-2le,ucs-2
+
+        if &encoding =~# '^\(euc-jp\|euc-jisx0213\|eucjp-ms\)$'
+            set fileencodings+=cp932
+            set fileencodings-=euc-jp
+            set fileencodings-=euc-jisx0213
+            set fileencodings-=eucjp-ms
+            let &encoding = s:enc_euc
+            let &fileencoding = s:enc_euc
+        else
+            let &fileencodings = &fileencodings .','. s:enc_euc
+        endif
+    endif
+    unlet s:enc_euc
+    unlet s:enc_jis
+endif
+
+" Set &encoding to fileencoding
+" if the file has not contained Japanese character.
+if has('autocmd')
+    function! AU_ReCheck_FENC()
+        if &fileencoding =~# 'iso-2022-jp' && search("[^\x01-\x7e]", 'n') == 0
+            let &fileencoding=&encoding
+        endif
+    endfunction
+    autocmd BufReadPost * call AU_ReCheck_FENC()
+endif
+
+" Check line feed format automatically.
+set fileformats=unix,dos,mac
+
+" In Unicode, show some symbols as two-byte character.
+if has('multi_byte')
+    set ambiwidth=double
+endif
+
+" ------------------------------------------------------------------------------
+" dein.vim settings
+" ------------------------------------------------------------------------------
+
+" The directory installed plugins.
+if has('win32') || has('win64')
+    if has('nvim')
+        let g:dein_dir = expand('$HOME\AppData\Local\nvim\bundles')
+    else
+        let g:dein_dir = expand('$HOME\vimfiles\bundles')
+    endif
+else
+    let g:dein_dir = expand('~/.vim/bundles')
+endif
+
+" dein.vim location.
+let s:dein_repo_dir = g:dein_dir . expand('/repos/github.com/Shougo/dein.vim')
+
+
+" Install dein.vim.
+function! s:dein_install()
+    execute '!git clone https://github.com/Shougo/dein.vim' s:dein_repo_dir
+    " Check dein.vim,
+    " then load plugins and delete the command to install dein.vim.
+    if isdirectory(s:dein_repo_dir)
+        call s:dein_load()
+        delcommand DeinInstall
+    endif
+endfunction
+
+
+" Load plugins.
+function! s:dein_load()
+    " Check runtime path.
+    if &runtimepath !~# expand('/dein.vim')
+        execute 'set runtimepath^=' . s:dein_repo_dir
+    endif
+
+    if dein#load_state(g:dein_dir)
+        " TOML files written plugins.
+        let g:vim_settings = expand('~/vimsettings')
+        let s:toml         = g:vim_settings . expand('/dein.toml')
+        let s:local_toml   = expand('~/.dein_local.toml')
+
+        call dein#begin(g:dein_dir, expand('<sfile>'))
+
+        " Load and cache a TOML file.
+        call dein#load_toml(s:toml)
+
+        " Load and cache a local TOML file if there is it.
+        if filereadable(s:local_toml)
+            call dein#load_toml(s:local_toml)
+        endif
+
+        " Finish settings.
+        call dein#end()
+        call dein#save_state()
+    endif
+
+    call dein#call_hook('source')
+
+    " Install plugins that are not yet installed, if any. 
+    if dein#check_install()
+        call dein#install()
+    endif
+endfunction
+
+
+if isdirectory(s:dein_repo_dir)
+    " Load plugins if dein.vim is installed.
+    call s:dein_load()
+else
+    " Else, make the command to install it.
+    command! DeinInstall call s:dein_install()
+    augroup nodein_call
+        autocmd!
+        autocmd VimEnter * echo 'dein.vim is not installed. '
+                            \ . 'Please install it by :DeinIntall.'
+    augroup END
+endif
+
+
+" ------------------------------------------------------------------------------
+" General settings
+" ------------------------------------------------------------------------------
+
+" Reload the modified file automatically.
 set autoread
 
-" バックアップファイルを作らない
+" Don't make a backup file.
 set nobackup
 
-" スワップファイルを作らない
+" Don't make a swap file.
 set noswapfile
 
-" アンドゥファイルを作らない
+" Don't make an undo file.
 set noundofile
 
-" 文字コードの設定
-set encoding=utf-8
-scriptencoding utf-8
+" Read Japanese help files.
+set helplang=ja
 
-" 日本語のヘルプファイルを読む
-set helplang=ja,en
-
-" gvimで終了時の状態を保存し, 次回起動時に状態を復元する
+" On a gvim, save vim state when vim finishes, and restore it when vim starts.
+" This is available only when g:save_session is not 0.
 if has('gui_running')
     augroup save_and_load_session
         autocmd!
 
-        " セッションファイル
+        " Session file location.
         let s:session_file = expand('$HOME/.vimsession')
 
         if filereadable(s:session_file)
-            " 引数なし起動の時、前回のセッションを復元
+            " Restore a previous session file when vim starts with no argument.
             autocmd VimEnter * nested if @% == '' && s:get_buf_byte() == 0
                                   \ |     execute 'source' s:session_file
                                   \ | endif
         endif
 
-        " Vim終了時に現在のセッションを保存する
+        " Save current session file when vim finishes.
         let g:save_session = 0
         autocmd VimLeave * if g:save_session == 0
                        \ |     call delete(s:session_file)
@@ -57,115 +204,33 @@ endfunction
 
 
 " ------------------------------------------------------------------------------
-" dein.vim settings
+" Key map settings
 " ------------------------------------------------------------------------------
 
-" プラグインが実際にインストールされるディレクトリ
-if has('win32') || has('win64')
-    if has('nvim')
-        let g:dein_dir = expand('$HOME\AppData\Local\nvim\bundles')
-    else
-        let g:dein_dir = expand('$HOME\vimfiles\bundles')
-    endif
-else
-    let g:dein_dir = expand('~/.vim/bundles')
-endif
-
-" dein.vim本体
-let s:dein_repo_dir = g:dein_dir . expand('/repos/github.com/Shougo/dein.vim')
-
-
-" dein.vimのインストール
-function! s:dein_install()
-    execute '!git clone https://github.com/Shougo/dein.vim' s:dein_repo_dir
-    " インストールされたのを確認して，プラグインのロードと
-    " インストールコマンドの削除
-    if isdirectory(s:dein_repo_dir)
-        call s:dein_load()
-        delcommand DeinInstall
-    endif
-endfunction
-
-
-" プラグインのロード
-function! s:dein_load()
-    " runtimepathのチェック
-    if &runtimepath !~# expand('/dein.vim')
-        execute 'set runtimepath^=' . s:dein_repo_dir
-    endif
-
-    if dein#load_state(g:dein_dir)
-        " プラグインリストを入力したTOMLファイル
-        let g:vim_settings = expand('~/vimsettings')
-        let s:toml         = g:vim_settings . expand('/dein.toml')
-        let s:local_toml   = expand('~/.dein_local.toml')
-
-        call dein#begin(g:dein_dir, expand('<sfile>'))
-
-        " TOMLを読み込み，キャッシュしておく
-        call dein#load_toml(s:toml)
-
-        " ローカルなTOMLがあれば追加で読み込み，キャッシュする
-        if filereadable(s:local_toml)
-            call dein#load_toml(s:local_toml)
-        endif
-
-        " 設定終了
-        call dein#end()
-        call dein#save_state()
-    endif
-
-    call dein#call_hook('source')
-
-    " もし，未インストールのものがあればインストール
-    if dein#check_install()
-        call dein#install()
-    endif
-endfunction
-
-
-if isdirectory(s:dein_repo_dir)
-    " dein.vimがあれば，プラグインをロードする
-    call s:dein_load()
-else
-    " dein.vimがなければ，インストールコマンドを生成する
-    command! DeinInstall call s:dein_install()
-    augroup nodein_call
-        autocmd!
-        autocmd VimEnter * echo 'dein.vimがインストールされていません．'
-                            \ . ':DeinInstallでインストールして下さい．'
-    augroup END
-endif
-
-
-" ------------------------------------------------------------------------------
-" キーマッピング設定
-" ------------------------------------------------------------------------------
-
-" <BS>, <Space>による移動の無効化
+" Disable movement by <BS> and <Space>.
 noremap <BS>    <Nop>
 noremap <Space> <Nop>
 
-" jとgj, kとgkを入れ替える
+" Reverse each keys "j" and "gj", "k" and "gk".
 noremap j gj
 noremap gj j
 noremap k gk
 noremap gk k
 
-" ;と:を入れ替える
+" Reverse ";" and ":".
 noremap ; :
 noremap : ;
 nnoremap q; q:
 
-" Deleteキーが効かなくなる問題を解決
+" Solve the problem that Delete key does not work.
 if has('unix') && !has('gui_running')
     noremap!  
 endif
 
-" <ESC><ESC>でハイライト解除
+" Release searching highlight by <ESC><ESC>.
 nnoremap <ESC><ESC> :<C-U>nohlsearch<CR>
 
-" 括弧の補完
+" Complete brackets.
 inoremap {     {}<LEFT>
 inoremap {<CR> {<CR>}<ESC>O
 inoremap {}    {}
@@ -180,24 +245,26 @@ inoremap ""    ""
 inoremap '     ''<LEFT>
 inoremap ''    ''
 
-" インサートモードでの<C-H>, <C-J>, <C-K>, <C-L>による移動の割り当て
+" In insert mode, assign movement to <C-H>, <C-J>, <C-K> and <C-L>.
 inoremap <C-H> <LEFT>
 inoremap <C-J> <DOWN>
 inoremap <C-K> <UP>
 inoremap <C-L> <RIGHT>
 
-" コマンドラインモードでの<C-P>, <C-N>による履歴補完の割り当て
+" In command line mode, assign complementing history to <C-P> and <C-N>.
 cnoremap <C-P> <UP>
 cnoremap <C-N> <DOWN>
 
-" コマンドラインモードでの<C-H>, <C-J>, <C-K>, <C-L>による移動の割り当て
-cnoremap <C-J> <LEFT>
-cnoremap <C-K> <RIGHT>
-cnoremap <C-H> <S-LEFT>
-cnoremap <C-L> <S-RIGHT>
+" In command line mode, assign movement to <C-H>, <C-J>, <C-K> and <C-L>.
+cnoremap <C-H> <LEFT>
+cnoremap <C-L> <RIGHT>
+cnoremap <C-J> <S-LEFT>
+cnoremap <C-K> <S-RIGHT>
 
-" Home, Endの割り当て（状況に応じてg^/^/0, g$/$を使い分ける）
-" （ビジュアルモードでもgo_to_head/footが使えるようにしたい…）
+" Assign <Home> and <End> to "<Space>h" and "<Space>l".
+" This uses "g^", "^" and 0 or "g$" and "$" for different purposes
+" in accordance situations.
+" TODO: Make this to be able to use in visual mode.
 nnoremap <silent> <Space>h :<C-U>call <SID>go_to_head()<CR>
 vnoremap          <Space>h ^
 onoremap          <Space>h ^
@@ -229,144 +296,154 @@ endfunction
 
 
 " ------------------------------------------------------------------------------
-" 表示系設定
+" Display settings
 " ------------------------------------------------------------------------------
 
-" カラースキームの設定
-colorscheme torte
-
-" 編集中のファイル名を表示する
+" Show current file name.
 set title
 
-" ステータスラインを表示
-set laststatus=2
-
-" ルーラの表示
-set ruler
-
-" 相対行番号の表示
+" Show relative line numbers.
 set relativenumber
 set numberwidth=3
  
-" カーソル行を表示
+" Highlight the cursor line.
 set cursorline
 
-" カーソル行の上下へのオフセットを設定する
+" Set the minimal number of screen lines to keep above and below the cursor.
 set scrolloff=4
 
-" ハイライトする括弧に<>を追加
+" Highlight pairs of "<>"
 set matchpairs& matchpairs+=<:>
 
-" Unicodeで行末が変になる問題を解決
-set ambiwidth=double
+" Setting of the status line.
+set laststatus=2
+set statusline=%!My_status_line()
+
+function! g:My_status_line()
+    return ' %F%m%r%h%w%='
+       \ . '%{&fileformat!=''''?&fileformat.'' | '':''''}'
+       \ . '%{&fileencoding!=''''?&fileencoding.'' | '':''''}'
+       \ . '%{&filetype!=''''?&filetype.'' | '':''''}'
+       \ . '%3v:%' . (float2nr(log10(line('$')))+1) . 'l / %L '
+endfunction
+
+
+" ------------------------------------------------------------------------------
+" Color settings
+" ------------------------------------------------------------------------------
+
+" Setting of highlights.
+augroup sethighlights
+    autocmd!
+    autocmd ColorScheme * call s:define_hilights()
+augroup END
 
 function! s:define_hilights()
-    " カーソル行の色設定
-    highlight CursorLine term=reverse cterm=none ctermbg=8
+    " Set the color of the cursor line.
+    highlight CursorLine term=underline cterm=underline gui=underline
 
-    " 補完ポップアップの色設定
+    " Set the colors of complementary pop-up.
     highlight Pmenu    ctermbg=lightgray
     highlight Pmenu    ctermfg=black
     highlight PmenuSel ctermbg=3
     highlight PmenuSel ctermfg=black
 endfunction
 
-augroup sethighlights
-    autocmd!
-    autocmd ColorScheme * :call <SID>define_hilights()
-augroup END
 
-" 挿入モード時、ステータスラインの色を変更
-let g:hl_insert = 'highlight StatusLine ctermfg=white ctermbg=red cterm=none '
-                                      \ . 'guifg=white   guibg=red   gui=none'
-
-if has('syntax')
-    augroup insert_hook
-        autocmd!
-        autocmd InsertEnter * call s:status_line('Enter')
-        autocmd InsertLeave * call s:status_line('Leave')
-    augroup END
-endif
-
-let s:sl_hl_cmd = ''
-function! s:status_line(mode)
-    if a:mode == 'Enter'
-        silent! let s:sl_hl_cmd = 'highlight ' . s:get_highlight('StatusLine')
-        silent exec g:hl_insert
-    else
-        highlight clear StatusLine
-        silent exec s:sl_hl_cmd
-    endif
-endfunction
-
-function! s:get_highlight(hi)
-    redir => hl
-    exec 'highlight ' . a:hi
-    redir END
-    let hl = substitute(hl, '[\r\n]', '', 'g')
-    let hl = substitute(hl, 'xxx', '', '')
-    return hl
-endfunction
+" In insert mode, change the color of the status line.
+" let g:hl_insert = 'highlight StatusLine ctermfg=white ctermbg=red cterm=none '
+"                                      \ . 'guifg=white   guibg=red   gui=none'
+" 
+" if has('syntax')
+"     augroup insert_hook
+"         autocmd!
+"         autocmd InsertEnter * call s:status_line('Enter')
+"         autocmd InsertLeave * call s:status_line('Leave')
+"     augroup END
+" endif
+" 
+" let s:sl_hl_cmd = ''
+" function! s:status_line(mode)
+"     if a:mode == 'Enter'
+"         silent! let s:sl_hl_cmd = 'highlight ' . s:get_highlight('StatusLine')
+"         silent exec g:hl_insert
+"     else
+"         highlight clear StatusLine
+"         silent exec s:sl_hl_cmd
+"     endif
+" endfunction
+" 
+" function! s:get_highlight(hi)
+"     redir => hl
+"     exec 'highlight ' . a:hi
+"     redir END
+"     let hl = substitute(hl, '[\r\n]', '', 'g')
+"     let hl = substitute(hl, 'xxx', '', '')
+"     return hl
+" endfunction
 
 
-" 全角スペースを表示
-" コメント以外で全角スペースを指定しているので scriptencodingと、
-" このファイルのエンコードが一致するよう注意！
-" 全角スペースが強調表示されない場合、ここでscriptencodingを指定すると良い。
-" scriptencoding cp932
+" Highlight two-byte spaces.
 
-" デフォルトのZenkakuSpaceを定義
-function! s:set_zs_hl()
-    highlight ZenkakuSpace cterm=none ctermbg=darkred gui=none guibg=darkred
+" Set highlight of two byte spaces.
+function! s:set_tbs_hl()
+    highlight two_byte_space cterm=none ctermbg=darkred gui=none guibg=darkred
 endfunction
 
 if has('syntax')
-    augroup zenkaku_space_group
+    augroup two_byte_space
         autocmd!
-        " ZenkakuSpaceをカラーファイルで設定するなら次の行は削除
-        autocmd ColorScheme       * call s:set_zs_hl()
-        " 全角スペースのハイライト指定
-        autocmd VimEnter,WinEnter * match ZenkakuSpace /　/
-        autocmd VimEnter,WinEnter * match ZenkakuSpace '\%u3000'
+        " Remove next line if you set two_byte_space in colorscheme.
+        autocmd ColorScheme * call s:set_tbs_hl()
+        " Coordinate the highlight with two byte spaces.
+        autocmd VimEnter,WinEnter * match two_byte_space /　/
+        autocmd VimEnter,WinEnter * match two_byte_space '\%u3000'
     augroup END
-    call s:set_zs_hl()
+    call s:set_tbs_hl()
 endif
 
 
-" 構文ハイライトを有効にする
+" Enable syntax highlight.
 syntax enable
 
+" Setting of the colorscheme.
+colorscheme torte
+
+" Set the color of front of each line.
+" highlight LineNr ctermbg=8 guibg=8
+" highlight CursorLineNr ctermbg=black guibg=black
+highlight CursorLineNr ctermfg=black guifg=black
 
 " ------------------------------------------------------------------------------
-" 検索設定
+" Search settings
 " ------------------------------------------------------------------------------
 
-" 検索文字列が小文字の場合は大文字小文字を区別なく検索する
+" Ignore capital letters if the search word don't contain a capital letter.
 set ignorecase
 
-" 検索文字列に大文字が含まれている場合は区別して検索する
+" Don't ignore capital letters if the search word contain a capital letter.
 set smartcase
 
-" 検索文字列入力時に順次対象文字列にヒットさせる
+" Enable incremental search.
 set incsearch
 
-" 検索時に最後まで行ったら最初に戻る
+" Search wrap around the end of the file.
 set wrapscan
 
-" 検索語をハイライト
+" Highlight the search word.
 augroup hl_search
     autocmd!
     autocmd VimEnter * set hlsearch
 augroup END
 
-" 直前の検索パターンと"hlsearch"をバッファローカルにする
+" Save the last search word and "hlsearch" for each buffers.
 " augroup localized_search
 "     autocmd!
 "     autocmd WinLeave * let b:vimrc_pattern = @/
 "     autocmd WinEnter * let @/ = get(b:, 'vimrc_pattern', @/)
 " augroup END
 
-" ビジュアルモードで, *, #で選択文字列で検索できるようにする
+" In visual mode, search the selected string by "*" or "#".
 xnoremap * :<C-U>call <SID>visual_star_search()<CR>/<C-R>=@/<CR><CR>
 xnoremap # :<C-U>call <SID>visual_star_search()<CR>#<C-R>=@/<CR><CR>
 
@@ -380,55 +457,59 @@ endfunction
 
 
 " ------------------------------------------------------------------------------
-" インデント設定
+" Indent settings
 " ------------------------------------------------------------------------------
 
-" 自動インデントを行う
+" Enable automatic indentation.
 set autoindent
 
-" 高度な自動インデントを行う
+" Enable smart automatic indentation.
 set smartindent
 
-" Tab文字を半角スペースにする
+" Replace tab characters with spaces.
 set expandtab
 
-" 行頭でのTab文字の表示幅
+" Set width of tab characters at beginning of lines.
 set shiftwidth=4
 
-" 行頭以外のTab文字の表示幅
+" Set width of tab characters except for beginning of lines.
 set tabstop=4
 
 
 " ------------------------------------------------------------------------------
-" その他の設定
+" Other settings
 " ------------------------------------------------------------------------------
 
-" 行を越えて左右移動
+" Disable automatic line break.
+set textwidth=0
+
+" Enable movement over lines.
 set whichwrap=h,l,<,>,[,]
 
-" コマンドラインの補完機能の設定
+" Set complementary settings in command line mode.
 set wildmenu
 set wildmode=longest:full,full
 
-" スペルチェック時に日本語等を無視
+" Ignore Japanese when check spelling
 set spelllang& spelllang+=cjk
 
-" コメント補完の無効化
+" Disable completing comment.
 augroup auto_comment_off
     autocmd!
     autocmd BufEnter * setlocal formatoptions-=r
     autocmd BufEnter * setlocal formatoptions-=o
 augroup END
 
-" <C-G>でカレントファイルの更新日時を表示
-nnoremap <C-G> :<C-U>call <SID>add_timestamp()<CR>
+" Show the last modification of the current file by <C-G>.
+nnoremap <C-G> :<C-U>call <SID>show_file_info()<CR>
 
-function! s:add_timestamp()
-    if expand('%') == ''
+function! s:show_file_info()
+    let l:time = getftime(expand('%'))
+    if l:time < 0
         normal! 
     else
         let l:file_info = substitute(execute('normal! '), '\n', '', 'g')
-        let l:timestamp = strftime(" %y/%m/%d %H:%M:%S", getftime(expand('%')))
+        let l:timestamp = strftime(" (%y/%m/%d %H:%M:%S)", l:time)
         let l:file_info = join(insert(split(l:file_info, '"\zs'),
                                     \ l:timestamp, 2), '')
         echo l:file_info
@@ -437,24 +518,25 @@ endfunction
 
 
 " ------------------------------------------------------------------------------
-" 言語別設定
+" Settings for each language
 " ------------------------------------------------------------------------------
 
-" vim scriptの編集中に""，tomlファイルの編集中に''の補完を無効にする
+" Disable completing "" while editing vim scripts,
+" and '' while editing TOML files.
 augroup vimscript
     autocmd!
-    autocmd BufRead,BufNewFile [._]g\=vimrc,.vimrc_local,*.vim,*.toml
-                                    \ inoremap <buffer> " "
+    autocmd FileType           vim    inoremap <buffer> " "
+    autocmd BufRead,BufNewFile *.toml inoremap <buffer> " "
     autocmd BufRead,BufNewFile *.toml inoremap <buffer> ' '
 augroup END
 
 
 " ------------------------------------------------------------------------------
-" ~/.vimrc_local
+" Local settings
 " ------------------------------------------------------------------------------
 
-" ローカルなvimrcがあれば，読み込む
-let s:vimrc_local = expand('~/.vimrc_local')
+" Load a local vimrc file if there is it.
+let s:vimrc_local = expand('$HOME/.vimrc_local')
 if filereadable(s:vimrc_local)
     execute 'source' s:vimrc_local
 endif
